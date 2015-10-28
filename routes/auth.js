@@ -5,7 +5,21 @@ var router = express.Router();
 
 /* POST a login request. */
 router.post('/login', function(req, res, next) {
-    res.send('respond with a resource');
+    var email = req.body.email;
+    var password = req.body.password;
+
+    res.setHeader('Content-Type', 'application/json');
+    res.format({
+        'application/json' : function() {
+            res.status(200).send({
+                status: true,
+                email: email
+            });
+        },
+        'default' : function() {
+            res.status(406).send('Content-Type Required');
+        }
+    });
 });
 
 module.exports = router;
