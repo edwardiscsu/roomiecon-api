@@ -8,12 +8,14 @@ var mongoose = require('mongoose');
 var uriUtil = require('mongodb-uri');
 var mongooseUri = uriUtil.formatMongoose(config.dbUri);
 
+var models = require('../models');
 
 /* CORS handler. IMPORTANT! Make sure it's there for all your routes! */
 router.all('/login', function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Content-Type, X-Requested-With");
+    res.header('Content-Type', 'application/json');
     next();
 });
 
@@ -26,20 +28,30 @@ router.post('/login', function(req, res, next) {
     var db = mongoose.connection;
     db.on('error', function() {
         console.error.bind(console, 'POST /login db connection error');
-        res.status(500).send({
-            error: 'error connecting to database'
-        })
+        res.status(500).end();
     });
     db.once('open', function(callback) {
-        res.setHeader('Content-Type', 'application/json');
         res.format({
             'application/json' : function() {
-                res.status(200).send({
-                    status: true,
-                    email: email
+                var User = models('user');
+
+                User.findOne({ 'email': email, 'password': password }, 'name email',
+                    function(err, user) {
+                        mongoose.connection.close();
+
+                        if (err) res.status(500).end();
+                        if (user != null) {
+                            res.status(200).send({
+                                name: user.name,
+                                email: user.email
+                            });
+                        } else {
+                            res.status(401).end();
+                        }
                 });
             },
             'default' : function() {
+                mongoose.connection.close();
                 res.status(406).send('Content-Type Required');
             }
         });
@@ -50,6 +62,7 @@ router.all('/signup', function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Content-Type, X-Requested-With");
+    res.header('Content-Type', 'application/json');
     next();
 });
 
@@ -58,7 +71,6 @@ router.post('/signup', function(req, res, next) {
     var email = req.body.email;
     var password = req.body.password;
 
-    res.setHeader('Content-Type', 'application/json');
     res.format({
         'application/json' : function() {
             res.status(200).send({

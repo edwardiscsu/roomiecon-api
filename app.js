@@ -58,5 +58,6 @@ app.use(function(err, req, res, next) {
   });
 });
 
+app.models = require('./models');
 
 module.exports = app;
