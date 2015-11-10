@@ -68,19 +68,40 @@ router.all('/signup', function(req, res, next) {
 
 /* POST a signup request. */
 router.post('/signup', function(req, res, next) {
+    var username = req.body.username;
     var email = req.body.email;
     var password = req.body.password;
+    var zip = req.body.zipcode
 
-    res.format({
-        'application/json' : function() {
-            res.status(200).send({
-                status: true,
-                email: email
-            });
-        },
-        'default' : function() {
-            res.status(406).send('Content-Type Required');
-        }
+    mongoose.connect(mongooseUri, config.dbOptions);
+    var db = mongoose.connection;
+    db.on('error', function() {
+        console.error.bind(console, 'POST /login db connection error');
+        res.status(500).end();
+    });
+    db.once('open', function(callback) {
+        res.format({
+            'application/json' : function() {
+                var newUser = new User({
+                    username:username,
+                    email:email,
+                    password:password,
+                    zipcode:zip
+                });
+
+                newUser.save(function(err) {
+                        mongoose.connection.close();
+
+                        if (err)alert("error connecting to server!");
+                            //res.status(500).end();
+
+                    });
+            },
+            'default' : function() {
+                mongoose.connection.close();
+                res.status(406).send('Content-Type Required');
+            }
+        });
     });
 });
 
