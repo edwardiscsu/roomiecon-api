@@ -71,7 +71,7 @@ router.post('/signup', function(req, res, next) {
     var username = req.body.username;
     var email = req.body.email;
     var password = req.body.password;
-    var zip = req.body.zipcode
+    var zip = req.body.zipCode
 
     mongoose.connect(mongooseUri, config.dbOptions);
     var db = mongoose.connection;
@@ -81,20 +81,34 @@ router.post('/signup', function(req, res, next) {
     });
     db.once('open', function(callback) {
         res.format({
+
             'application/json' : function() {
+                var User = models('user');
+
                 var newUser = new User({
-                    username:username,
-                    email:email,
-                    password:password,
-                    zipcode:zip
+                    name: {
+                        tag: username
+                    },
+                    email: email,
+                    password: password,
+                    zipCode: zip
                 });
 
-                newUser.save(function(err) {
+
+                newUser.save(
+                    function (err, user) {
                         mongoose.connection.close();
-
-                        if (err)alert("error connecting to server!");
-                            //res.status(500).end();
-
+                        if (err) res.status(500).end();
+                        if (user != null) {
+                            res.status(200).send({
+                                username: user.username,
+                                email: user.email,
+                                password: user.password,
+                                zipCode: user.zipCode
+                            });
+                        } else {
+                            res.status(500).end();
+                        }
                     });
             },
             'default' : function() {
