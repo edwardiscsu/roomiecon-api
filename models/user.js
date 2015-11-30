@@ -9,7 +9,9 @@ var userSchema = Schema({
     },
     email: String,
     password: String,
-    zipCode: String
+    zipCode: String,
+    domiciles: [{ type: Schema.Types.ObjectId, ref: 'Domicile' }],
+    preferences: [{ type: Schema.Types.ObjectId, ref: 'Preference' }]
 }, {collection: 'users'});
 
 module.exports = mongoose.model('User', userSchema);
