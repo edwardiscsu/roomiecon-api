@@ -31,7 +31,14 @@ router.get('/', function(req, res, next){
         res.format({
             'application/json' : function() {
                 mongoose.connection.close();
-                res.status(200).send(config.mapTestData);
+                var testCode = req.param("code");
+                var data = {};
+                if (testCode == 1) data = config.mapTestData1;
+                else if (testCode == 2) data = config.mapTestData2;
+                else if (testCode == 3) data = config.mapTestData3;
+                else data = config.mapTestData0;
+
+                res.status(200).send(data);
             },
             'default' : function() {
                 mongoose.connection.close();
